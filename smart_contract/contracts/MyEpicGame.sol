@@ -55,6 +55,9 @@ contract MyEpicGame is ERC721 {
     // which hold the default characters' attributes.
     CharacterAttributes[] defaultCharacters;
 
+    event CharacterNFTMinted(address sender, uint256 tokenId, uint256 characterIndex);
+    event AttackComplete(address sender, uint newBossHp, uint newPlayerHp);
+
     constructor(
         string[] memory characterNames,
         string[] memory characterImageURIs,
@@ -141,6 +144,7 @@ contract MyEpicGame is ERC721 {
         // This line assigns the token ID, newItemId, to the msg.sender address in the nftHolders mapping.
         nftHolders[msg.sender] = newItemId;
         _tokenIds.increment();
+        emit CharacterNFTMinted(msg.sender, newItemId, _characterIndex);
     }
 
     function tokenURI(
@@ -235,6 +239,8 @@ contract MyEpicGame is ERC721 {
 
         console.log("Player attacked boss. New boss hp: %s", bigBoss.hp);
         console.log("Boss attacked player. New player hp: %s\n", player.hp);
+        emit AttackComplete(msg.sender, bigBoss.hp, player.hp);
+
     }
 
     function randomInt(uint _modulus) internal returns (uint) {
@@ -249,5 +255,32 @@ contract MyEpicGame is ERC721 {
                     )
                 )
             ) % _modulus; // modulo using the _modulus argument
+    }
+
+    function checkIfUserHasNFT()
+        public
+        view
+        returns (CharacterAttributes memory)
+    {
+        // Get the tokenId of the user's character NFT
+        uint256 userNftTokenId = nftHolders[msg.sender];
+
+        // If the user has a tokenId in the map, return their character.
+                // Else, return an empty character.
+
+        if(userNftTokenId > 0) {
+            return nftHolderAttributes[userNftTokenId];
+        } else {
+            CharacterAttributes memory emptyStruct;
+            return emptyStruct;
+        }
+    }
+
+    function getAllDefaultCharacters() public view returns (CharacterAttributes[] memory) {
+        return defaultCharacters;
+    }
+
+    function getBigBoss() public view returns (BigBoss memory) {
+        return bigBoss;
     }
 }
