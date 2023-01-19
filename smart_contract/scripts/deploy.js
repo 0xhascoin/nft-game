@@ -16,25 +16,33 @@ const main = async () => {
     console.log(`MyEpicGame.sol contract deployed to: ${gameContract.address}`);
 
     let txn;
+    txn = await gameContract.mintCharacterNFT(0);
+    await txn.wait();
+    console.log("Minted NFT #1");
+
+    txn = await gameContract.mintCharacterNFT(1);
+    await txn.wait();
+    console.log("Minted NFT #2");
+
     txn = await gameContract.mintCharacterNFT(2);
     await txn.wait();
+    console.log("Minted NFT #3");
 
-    txn = await gameContract.attackBoss();
+    txn = await gameContract.mintCharacterNFT(1);
     await txn.wait();
+    console.log("Minted NFT #4");
 
-    txn = await gameContract.attackBoss();
-    await txn.wait();
-
+    console.log("Done deploying and minting!");
 };
 
 const runMain = async () => {
     try {
-        await main();
-        process.exit(0);
+      await main();
+      process.exit(0);
     } catch (error) {
-        console.log(error);
-        process.exit(1);
+      console.log(error);
+      process.exit(1);
     }
-};
-
-runMain();
+  };
+  
+  runMain();
