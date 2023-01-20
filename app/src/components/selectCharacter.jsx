@@ -3,10 +3,13 @@ import "./selectCharacter.css";
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, transformCharacterData } from '../constants';
 import myEpicGame from '../utils/MyEpicGame.json';
+import LoadingIndicator from './loadingIndicator';
 
 const SelectCharacter = ({ setCharacterNFT }) => {
   const [characters, setCharacters] = useState([]);
   const [gameContract, setGameContract] = useState(null);
+  const [mintingCharacter, setMintingCharacter] = useState(false);
+
 
   useEffect(() => {
     const { ethereum } = window;
@@ -42,7 +45,7 @@ const SelectCharacter = ({ setCharacterNFT }) => {
 
     const onCharacterMint = async (sender, tokenId, characterIndex) => {
       console.log(`CharacterNFTMinted - sender: ${sender} tokenId: ${tokenId.toNumber()} characterIndex: ${characterIndex.toNumber()}`);
-      if(gameContract) {
+      if (gameContract) {
         const characterNFT = await gameContract.checkIfUserHasNFT();
         console.log('CharacterNFT: ', characterNFT);
         setCharacterNFT(transformCharacterData(characterNFT));
@@ -55,7 +58,7 @@ const SelectCharacter = ({ setCharacterNFT }) => {
     }
 
     return () => {
-      if(gameContract) {
+      if (gameContract) {
         gameContract.off('CharacterNFTMinted', onCharacterMint);
       }
     }
@@ -63,14 +66,17 @@ const SelectCharacter = ({ setCharacterNFT }) => {
 
   const mintCharacterNFTAction = async (characterId) => {
     try {
-      if(gameContract) {
+      if (gameContract) {
+        setMintingCharacter(true);
         console.log('Minting character in progress...');
         const mintTxn = await gameContract.mintCharacterNFT(characterId);
         await mintTxn.wait();
         console.log('mintTxn:', mintTxn);
+        setMintingCharacter(false);
       }
     } catch (error) {
       console.warn('MintCharacterAction Error:', error);
+      setMintingCharacter(false);
     }
   }
 
@@ -96,6 +102,18 @@ const SelectCharacter = ({ setCharacterNFT }) => {
       {characters.length > 0 && (
         <div className="character-grid">
           {renderCharacters()}
+        </div>
+      )}
+      {mintingCharacter && (
+        <div className="loading">
+          <div className="indicator">
+            <LoadingIndicator />
+            <p>Minting In Progress...</p>
+          </div>
+          <img
+            src="https://media2.giphy.com/media/61tYloUgq1eOk/giphy.gif?cid=ecf05e47dg95zbpabxhmhaksvoy8h526f96k4em0ndvx078s&rid=giphy.gif&ct=g"
+            alt="Minting loading indicator"
+          />
         </div>
       )}
     </div>

@@ -3,11 +3,14 @@ import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, transformCharacterData } from '../constants';
 import myEpicGame from '../utils/MyEpicGame.json';
 import './arena.css';
+import LoadingIndicator from './loadingIndicator';
 
 const Arena = ({ setCharacterNFT, characterNFT, currentAccount }) => {
     const [gameContract, setGameContract] = useState(null);
     const [boss, setBoss] = useState(null);
     const [attackState, setAttackState] = useState('');
+    const [showToast, setShowToast] = useState(false);
+
 
 
     useEffect(() => {
@@ -47,20 +50,20 @@ const Arena = ({ setCharacterNFT, characterNFT, currentAccount }) => {
             */
             if (currentAccount === sender.toLowerCase()) {
 
-              setBoss((prevState) => {
-                  return { ...prevState, hp: bossHp };
-              });
-              setCharacterNFT((prevState) => {
-                  return { ...prevState, hp: playerHp };
-              });
+                setBoss((prevState) => {
+                    return { ...prevState, hp: bossHp };
+                });
+                setCharacterNFT((prevState) => {
+                    return { ...prevState, hp: playerHp };
+                });
             }
             /*
             * If player isn't ours, update boss Hp only
             */
             else {
-              setBoss((prevState) => {
-                  return { ...prevState, hp: bossHp };
-              });
+                setBoss((prevState) => {
+                    return { ...prevState, hp: bossHp };
+                });
             }
         }
 
@@ -79,13 +82,18 @@ const Arena = ({ setCharacterNFT, characterNFT, currentAccount }) => {
 
     const runAttackAction = async () => {
         try {
-            if(gameContract) {
+            if (gameContract) {
                 setAttackState('attacking');
                 console.log("Attacking boss...")
                 const attackTxn = await gameContract.attackBoss();
                 await attackTxn.wait();
                 console.log("attackTxn: ", attackTxn);
                 setAttackState("hit");
+
+                setShowToast(true);
+                setTimeout(() => {
+                    setShowToast(false);
+                }, 5000);
 
             }
         } catch (error) {
@@ -97,6 +105,11 @@ const Arena = ({ setCharacterNFT, characterNFT, currentAccount }) => {
 
     return (
         <div className="arena-container">
+            {boss && characterNFT && (
+                <div id="toast" className={showToast ? 'show' : ''}>
+                    <div id="desc">{`💥 ${boss.name} was hit for ${characterNFT.attackDamage}!`}</div>
+                </div>
+            )}
             {/* Boss */}
             {boss && (
                 <div className="boss-container">
@@ -115,6 +128,12 @@ const Arena = ({ setCharacterNFT, characterNFT, currentAccount }) => {
                             {`💥 Attack ${boss.name}`}
                         </button>
                     </div>
+                    {attackState === 'attacking' && (
+                        <div className="loading-indicator">
+                            <LoadingIndicator />
+                            <p>Attacking ⚔️</p>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -140,6 +159,10 @@ const Arena = ({ setCharacterNFT, characterNFT, currentAccount }) => {
                             </div>
                         </div>
                     </div>
+                    {/* <div className="active-players">
+          <h2>Active Players</h2>
+          <div className="players-list">{renderActivePlayersList()}</div>
+        </div> */}
                 </div>
             )}
         </div>

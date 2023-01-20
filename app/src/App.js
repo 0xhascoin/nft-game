@@ -8,6 +8,7 @@ import { ethers } from 'ethers';
 
 import SelectCharacter from './components/selectCharacter';
 import Arena from './components/arena';
+import LoadingIndicator from './components/loadingIndicator';
 
 // Constants
 const TWITTER_HANDLE = '0xHascoin';
@@ -16,6 +17,7 @@ const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 const App = () => {
   const [currentAccount, setCurrentAccount] = useState(null);
   const [characterNFT, setCharacterNFT] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const checkNetwork = async () => {
     try {
@@ -32,6 +34,7 @@ const App = () => {
       const { ethereum } = window;
       if (!ethereum) {
         console.log("Make sure you have Metamask.");
+        setIsLoading(false);
         return;
       } else {
         console.log("We have the ethereum object: ", ethereum);
@@ -48,6 +51,7 @@ const App = () => {
     } catch (error) {
       console.error(error);
     }
+    setIsLoading(false);
   };
 
   const connectWalletAction = async () => {
@@ -68,6 +72,8 @@ const App = () => {
   }
 
   const renderContent = () => {
+    if(isLoading) return <LoadingIndicator />
+
     if (!currentAccount) {
       return (
         <div className="connect-wallet-container">
@@ -95,6 +101,7 @@ const App = () => {
   }
 
   useEffect(() => {
+    setIsLoading(true);
     checkIfWalletIsConnected();
   }, []);
 
@@ -116,13 +123,17 @@ const App = () => {
       } else {
         console.log("No Character NFT found.");
       }
-    }
+
+      setIsLoading(false);
+    };
 
     if(currentAccount) {
       console.log("Current Account: ", currentAccount);
       fetchNFTMetadata();
     }
   }, [currentAccount]);
+
+  
 
   return (
     <div className="App">
